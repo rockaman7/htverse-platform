@@ -1,5 +1,7 @@
 // API Base URL
-const API_BASE = 'http://localhost:5000/api';
+// const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://htverse-platform.onrender.com/api';
+
 
 // Token management
 class TokenManager {
