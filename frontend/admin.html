@@ -374,6 +374,22 @@
 
     <script src="js/auth.js"></script>
     <script>
+      // Add helper functions
+      const UIHelpers = {
+        showAlert: function (message, type = "info") {
+          alert(message); // You can enhance this with better styling
+        },
+        formatCurrency: function (amount) {
+          return `₹${amount.toLocaleString("en-IN")}`;
+        },
+        formatDate: function (dateString) {
+          return new Date(dateString).toLocaleDateString("en-IN", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+        },
+      };
       // Protect admin page
       if (!requireAuth()) {
         // requireAuth will handle redirect
@@ -702,7 +718,7 @@
 
         try {
           const response = await fetch(
-            `http://localhost:5000/api/hackathons/${hackathonId}`,
+            `https://htverse-platform.onrender.com/api/hackathons/${hackathonId}`,
             {
               method: "DELETE",
               headers: {
@@ -726,7 +742,6 @@
         }
       }
 
-      // Edit hackathon (placeholder)
       // Replace the placeholder edit function
       async function editHackathon(hackathonId) {
         try {
@@ -805,7 +820,7 @@
             if (isEdit) {
               // Update existing hackathon
               response = await fetch(
-                `http://localhost:5000/api/hackathons/${hackathonId}`,
+                `https://htverse-platform.onrender.com/api/hackathons/${hackathonId}`,
                 {
                   method: "PUT",
                   headers: {
