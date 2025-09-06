@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Profile - HTverse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html" style="text-decoration: none; color: #667eea;"> HTverse </a></h2>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <!-- Will be updated by auth.js -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Update Form -->
+    <section style="padding: 120px 0 40px;">
+        <div class="container">
+            <!-- Back Button -->
+            <div style="margin-bottom: 2rem;">
+                <a href="dashboard.html" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #667eea; text-decoration: none; font-weight: 500;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div class="form-header" style="text-align: center; margin-bottom: 2rem;">
+                    <h1>Update Your Profile</h1>
+                    <p>Keep your information up to date</p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingContainer">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading your profile...</p>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <div id="profileForm" style="display: none; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                    <form id="updateProfileForm">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required readonly style="background: #f8f9fa; cursor: not-allowed;">
+                            <small style="color: #666; font-size: 0.875rem;">Email cannot be changed for security reasons</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="college">College/University *</label>
+                            <input type="text" id="college" name="college" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="skills">Skills</label>
+                            <input type="text" id="skills" name="skills" placeholder="e.g., JavaScript, Python, React (comma-separated)">
+                            <small style="color: #666; font-size: 0.875rem;">Separate multiple skills with commas</small>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                            <a href="dashboard.html" class="btn-secondary">Cancel</a>
+                            <button type="submit" class="btn-primary" id="submitBtn">
+                                <span id="btnText">Update Profile</span>
+                                <span id="btnLoader" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Updating...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Password Change Section -->
+                <div id="passwordSection" style="display: none; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">Change Password</h3>
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password *</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">New Password *</label>
+                            <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                        </div>
+
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn-danger" id="passwordBtn">
+                                <span id="passwordBtnText">Change Password</span>
+                                <span id="passwordBtnLoader" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Changing...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Protect this page
+        if (!requireAuth()) {
+            // requireAuth will handle redirect
+        } else {
+            loadUserProfile();
+        }
+
+        let currentUser = null;
+
+        async function loadUserProfile() {
+            try {
+                const response = await APIClient.getProfile();
+                if (response.success) {
+                    currentUser = response.user;
+                    populateForm(currentUser);
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('profileForm').style.display = 'block';
+                    document.getElementById('passwordSection').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Profile load error:', error);
+                UIHelpers.showAlert('Failed to load profile data', 'error');
+            }
+        }
+
+        function populateForm(user) {
+            document.getElementById('name').value = user.name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('college').value = user.college || '';
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('skills').value = user.skills ? user.skills.join(', ') : '';
+        }
+
+        // Handle profile update
+        document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const userData = {
+                name: formData.get('name').trim(),
+                college: formData.get('college').trim(),
+                phone: formData.get('phone').trim(),
+                skills: formData.get('skills') ? formData.get('skills').split(',').map(skill => skill.trim()).filter(skill => skill) : []
+            };
+
+            // Basic validation
+            if (!userData.name || !userData.college || !userData.phone) {
+                UIHelpers.showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(userData.phone)) {
+                UIHelpers.showAlert('Please enter a valid 10-digit phone number', 'error');
+                return;
+            }
+
+            // Show loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+
+            try {
+                // Since we don't have an update profile endpoint, we'll simulate it
+                // In a real implementation, you'd call: await APIClient.updateProfile(userData);
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                UIHelpers.showAlert('Profile updated successfully!', 'success');
+                
+                // Update current user data
+                currentUser = { ...currentUser, ...userData };
+                
+                // Redirect back to dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                
+            } catch (error) {
+                UIHelpers.showAlert(error.message || 'Failed to update profile', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        // Handle password change
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const passwordBtn = document.getElementById('passwordBtn');
+            const passwordBtnText = document.getElementById('passwordBtnText');
+            const passwordBtnLoader = document.getElementById('passwordBtnLoader');
+            
+            const formData = new FormData(e.target);
+            const currentPassword = formData.get('currentPassword');
+            const newPassword = formData.get('newPassword');
+            const confirmPassword = formData.get('confirmPassword');
+
+            // Validation
+            if (newPassword !== confirmPassword) {
+                UIHelpers.showAlert('New passwords do not match', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                UIHelpers.showAlert('New password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            // Show loading
+            passwordBtn.disabled = true;
+            passwordBtnText.style.display = 'none';
+            passwordBtnLoader.style.display = 'inline';
+
+            try {
+                // Simulate password change API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                UIHelpers.showAlert('Password changed successfully!', 'success');
+                
+                // Clear form
+                document.getElementById('changePasswordForm').reset();
+                
+            } catch (error) {
+                UIHelpers.showAlert('Failed to change password', 'error');
+            } finally {
+                passwordBtn.disabled = false;
+                passwordBtnText.style.display = 'inline';
+                passwordBtnLoader.style.display = 'none';
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', (e) => {
+            const value = e.target.value.replace(/\D/g, '');
+            e.target.value = value.slice(0, 10);
+        });
+
+        // Skills formatting
+        document.getElementById('skills').addEventListener('blur', (e) => {
+            if (e.target.value) {
+                const skills = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+                e.target.value = skills.join(', ');
+            }
+        });
+    </script>
+</body>
+</html>

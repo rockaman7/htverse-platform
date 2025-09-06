@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon Details - HTverse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html" style="text-decoration: none; color: #667eea;">HTverse</a></h2>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <!-- Will be updated by auth.js -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <section style="padding: 120px 0 40px;">
+        <div class="container">
+            <!-- Back Button -->
+            <div style="margin-bottom: 2rem;">
+                <a href="hackathons.html" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #667eea; text-decoration: none; font-weight: 500;">
+                    <i class="fas fa-arrow-left"></i> Back to Hackathons
+                </a>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingContainer">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading hackathon details...</p>
+                </div>
+            </div>
+
+            <!-- Hackathon Content -->
+            <div id="hackathonContent" style="display: none;">
+                <!-- Hero Section -->
+                <div id="hackathonHero"></div>
+
+                <!-- Main Info Grid -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <!-- Left Column: Details -->
+                    <div>
+                        <!-- Description -->
+                        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #333;">About This Hackathon</h3>
+                            <div id="hackathonDescription"></div>
+                        </div>
+
+                        <!-- Rules -->
+                        <div id="rulesSection" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #333;">Rules & Guidelines</h3>
+                            <div id="hackathonRules"></div>
+                        </div>
+
+                        <!-- Judging Criteria -->
+                        <div id="criteriaSection" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #333;">Judging Criteria</h3>
+                            <div id="judgingCriteria"></div>
+                        </div>
+
+                        <!-- Participants -->
+                        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                            <h3 style="margin-bottom: 1rem; color: #333;">Participants</h3>
+                            <div id="participantsList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Quick Info & Actions -->
+                    <div>
+                        <!-- Quick Info Card -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 1.5rem; position: sticky; top: 90px;">
+                            <div id="quickInfo"></div>
+                            <div id="actionButtons" style="margin-top: 1.5rem;"></div>
+                        </div>
+
+                        <!-- Organizer Info -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                            <h4 style="margin-bottom: 1rem; color: #333;">Organized By</h4>
+                            <div id="organizerInfo"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorContainer" style="display: none; text-align: center; padding: 3rem;">
+                <div style="background: white; padding: 3rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74c3c; margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 1rem; color: #333;">Hackathon Not Found</h3>
+                    <p style="color: #666; margin-bottom: 2rem;">The hackathon you're looking for doesn't exist or has been removed.</p>
+                    <a href="hackathons.html" class="btn-primary">Browse Other Hackathons</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/auth.js"></script>
+    <script>
+        let hackathon = null;
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const hackathonId = getHackathonIdFromURL();
+            if (!hackathonId) {
+                showError();
+                return;
+            }
+
+            await loadUserProfile();
+            await loadHackathonDetails(hackathonId);
+        });
+
+        function getHackathonIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        async function loadUserProfile() {
+            try {
+                if (TokenManager.isLoggedIn()) {
+                    const response = await APIClient.getProfile();
+                    if (response.success) {
+                        currentUser = response.user;
+                    }
+                }
+            } catch (error) {
+                console.error('Profile load error:', error);
+            }
+        }
+
+        async function loadHackathonDetails(hackathonId) {
+            try {
+                const response = await APIClient.getHackathon(hackathonId);
+                if (response.success) {
+                    hackathon = response.data;
+                    displayHackathonDetails();
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('hackathonContent').style.display = 'block';
+                    
+                    // Update page title
+                    document.title = `${hackathon.title} - HTverse`;
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error('Hackathon load error:', error);
+                showError();
+            }
+        }
+
+        function displayHackathonDetails() {
+            displayHero();
+            displayQuickInfo();
+            displayDescription();
+            displayRules();
+            displayJudgingCriteria();
+            displayParticipants();
+            displayOrganizer();
+            displayActionButtons();
+        }
+
+        function displayHero() {
+            const statusColors = {
+                'upcoming': '#667eea',
+                'ongoing': '#27ae60',
+                'completed': '#95a5a6',
+                'cancelled': '#e74c3c'
+            };
+
+            const isRegistered = currentUser && hackathon.participants.some(p => 
+                (p._id === currentUser.id) || (p.id === currentUser.id)
+            );
+
+            document.getElementById('hackathonHero').innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem; border-radius: 12px; color: white; position: relative;">
+                    ${isRegistered ? '<div style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.875rem; font-weight: 600;">✓ YOU\'RE REGISTERED</div>' : ''}
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">${hackathon.title}</h1>
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                                <span style="background: ${statusColors[hackathon.status]}; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                                    ${hackathon.status.charAt(0).toUpperCase() + hackathon.status.slice(1)}
+                                </span>
+                                <span style="font-size: 1.5rem; font-weight: 600;">🏆 ${UIHelpers.formatCurrency(hackathon.prizePool)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                        <div>
+                            <div style="opacity: 0.8; font-size: 0.875rem;">Start Date</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${UIHelpers.formatDate(hackathon.startDate)}</div>
+                        </div>
+                        <div>
+                            <div style="opacity: 0.8; font-size: 0.875rem;">End Date</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${UIHelpers.formatDate(hackathon.endDate)}</div>
+                        </div>
+                        <div>
+                            <div style="opacity: 0.8; font-size: 0.875rem;">Registration Deadline</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${UIHelpers.formatDate(hackathon.registrationDeadline)}</div>
+                        </div>
+                        <div>
+                            <div style="opacity: 0.8; font-size: 0.875rem;">Team Size</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">1-${hackathon.maxTeamSize} members</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayQuickInfo() {
+            const spotsLeft = hackathon.maxParticipants - hackathon.participants.length;
+            const registrationOpen = new Date() < new Date(hackathon.registrationDeadline);
+
+            document.getElementById('quickInfo').innerHTML = `
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #667eea;">${hackathon.participants.length}</div>
+                    <div style="font-size: 0.875rem; color: #666;">Participants Registered</div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: #666;">Spots Taken:</span>
+                        <span style="font-weight: 600;">${hackathon.participants.length}/${hackathon.maxParticipants}</span>
+                    </div>
+                    <div style="background: #e1e5e9; border-radius: 10px; height: 8px;">
+                        <div style="background: #667eea; height: 100%; border-radius: 10px; width: ${(hackathon.participants.length / hackathon.maxParticipants) * 100}%;"></div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: ${spotsLeft > 0 ? '#27ae60' : '#e74c3c'}; margin-top: 0.5rem;">
+                        ${spotsLeft > 0 ? `${spotsLeft} spots remaining` : 'No spots available'}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem; color: #333;">Categories</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${hackathon.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div style="font-size: 0.875rem; color: #666;">
+                    <div style="margin-bottom: 0.25rem;">
+                        <i class="fas fa-clock"></i> Registration ${registrationOpen ? 'closes' : 'closed'} ${UIHelpers.formatDate(hackathon.registrationDeadline)}
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar"></i> Duration: ${calculateDuration(hackathon.startDate, hackathon.endDate)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayActionButtons() {
+            const now = new Date();
+            const regDeadline = new Date(hackathon.registrationDeadline);
+            const isRegistered = currentUser && hackathon.participants.some(p => 
+                (p._id === currentUser.id) || (p.id === currentUser.id)
+            );
+
+            let buttonHTML = '';
+
+            if (!TokenManager.isLoggedIn()) {
+                buttonHTML = `
+                    <a href="login.html" class="btn-primary" style="width: 100%; text-align: center; margin-bottom: 0.5rem;">
+                        <i class="fas fa-sign-in-alt"></i> Login to Register
+                    </a>
+                `;
+            } else if (isRegistered) {
+                if (hackathon.status === 'upcoming') {
+                    buttonHTML = `
+                        <button onclick="unregisterFromHackathon()" class="btn-danger" style="width: 100%; margin-bottom: 0.5rem;">
+                            <i class="fas fa-times"></i> Leave Hackathon
+                        </button>
+                    `;
+                } else {
+                    buttonHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 8px; text-align: center; font-weight: 600;">
+                            <i class="fas fa-check-circle"></i> You're Registered!
+                        </div>
+                    `;
+                }
+            } else if (now > regDeadline) {
+                buttonHTML = `
+                    <button disabled class="btn-secondary" style="width: 100%; opacity: 0.6;">
+                        <i class="fas fa-lock"></i> Registration Closed
+                    </button>
+                `;
+            } else if (hackathon.participants.length >= hackathon.maxParticipants) {
+                buttonHTML = `
+                    <button disabled class="btn-secondary" style="width: 100%; opacity: 0.6;">
+                        <i class="fas fa-users"></i> Hackathon Full
+                    </button>
+                `;
+            } else {
+                buttonHTML = `
+                    <button onclick="registerForHackathon()" class="btn-primary" style="width: 100%; margin-bottom: 0.5rem;">
+                        <i class="fas fa-plus"></i> Join Hackathon
+                    </button>
+                `;
+            }
+
+            buttonHTML += `
+                <a href="hackathons.html" class="btn-secondary" style="width: 100%; text-align: center;">
+                    <i class="fas fa-arrow-left"></i> Back to Browse
+                </a>
+            `;
+
+            document.getElementById('actionButtons').innerHTML = buttonHTML;
+        }
+
+        function displayDescription() {
+            document.getElementById('hackathonDescription').innerHTML = `
+                <p style="color: #666; line-height: 1.6; font-size: 1rem;">${hackathon.description}</p>
+            `;
+        }
+
+        function displayRules() {
+            if (hackathon.rules && hackathon.rules.length > 0) {
+                const rulesHTML = `
+                    <ul style="color: #666; line-height: 1.8; padding-left: 1.5rem;">
+                        ${hackathon.rules.map(rule => `<li>${rule}</li>`).join('')}
+                    </ul>
+                `;
+                document.getElementById('hackathonRules').innerHTML = rulesHTML;
+            } else {
+                document.getElementById('rulesSection').style.display = 'none';
+            }
+        }
+
+        function displayJudgingCriteria() {
+            if (hackathon.judgesCriteria && hackathon.judgesCriteria.length > 0) {
+                const criteriaHTML = hackathon.judgesCriteria.map(criteria => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 0.75rem;">
+                        <span style="font-weight: 600; color: #333;">${criteria.criterion}</span>
+                        <span style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            ${criteria.weightage}%
+                        </span>
+                    </div>
+                `).join('');
+                document.getElementById('judgingCriteria').innerHTML = criteriaHTML;
+            } else {
+                document.getElementById('criteriaSection').style.display = 'none';
+            }
+        }
+
+        function displayParticipants() {
+            if (hackathon.participants.length === 0) {
+                document.getElementById('participantsList').innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No participants yet. Be the first to join!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const participantsHTML = hackathon.participants.slice(0, 12).map(participant => `
+                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 0.5rem;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        ${participant.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: #333;">${participant.name}</div>
+                        <div style="font-size: 0.875rem; color: #666;">${participant.college}</div>
+                    </div>
+                    ${participant.skills && participant.skills.length > 0 ? 
+                        `<div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                            ${participant.skills.slice(0, 2).map(skill => `<span style="background: #e7edff; color: #667eea; padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem;">${skill}</span>`).join('')}
+                        </div>` : ''
+                    }
+                </div>
+            `).join('');
+
+            let moreParticipants = '';
+            if (hackathon.participants.length > 12) {
+                moreParticipants = `
+                    <div style="text-align: center; padding: 1rem; color: #666; font-size: 0.875rem;">
+                        +${hackathon.participants.length - 12} more participants
+                    </div>
+                `;
+            }
+
+            document.getElementById('participantsList').innerHTML = participantsHTML + moreParticipants;
+        }
+
+        function displayOrganizer() {
+            document.getElementById('organizerInfo').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">
+                        ${hackathon.organizer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 0.25rem;">${hackathon.organizer.name}</div>
+                        <div style="color: #666; font-size: 0.875rem;">
+                            <i class="fas fa-envelope"></i> ${hackathon.organizer.email}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateDuration(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+        }
+
+        async function registerForHackathon() {
+            try {
+                const response = await APIClient.registerForHackathon(hackathon._id);
+                if (response.success) {
+                    UIHelpers.showAlert('Successfully registered for hackathon!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (error) {
+                UIHelpers.showAlert(error.message || 'Failed to register for hackathon', 'error');
+            }
+        }
+
+        async function unregisterFromHackathon() {
+            if (!confirm('Are you sure you want to leave this hackathon?')) return;
+
+            try {
+                const response = await APIClient.unregisterFromHackathon(hackathon._id);
+                if (response.success) {
+                    UIHelpers.showAlert('Successfully left the hackathon', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (error) {
+                UIHelpers.showAlert(error.message || 'Failed to leave hackathon', 'error');
+            }
+        }
+
+        function showError() {
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('errorContainer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

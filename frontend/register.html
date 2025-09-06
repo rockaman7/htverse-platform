@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - HTverse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html" style="text-decoration: none; color: #667eea;">HTverse</a></h2>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="hackathons.html">Browse Hackathons</a>
+                <a href="login.html" class="btn-secondary">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Registration Form -->
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Join HTverse</h1>
+            <p>Start your hackathon journey today</p>
+        </div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required minlength="6">
+                <small style="color: #666; font-size: 0.875rem;">Minimum 6 characters</small>
+            </div>
+
+            <div class="form-group">
+                <label for="college">College/University *</label>
+                <input type="text" id="college" name="college" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}" placeholder="9876543210">
+                <small style="color: #666; font-size: 0.875rem;">10-digit mobile number</small>
+            </div>
+
+            <div class="form-group">
+                <label for="skills">Skills (Optional)</label>
+                <input type="text" id="skills" name="skills" placeholder="e.g., JavaScript, Python, React (comma-separated)">
+                <small style="color: #666; font-size: 0.875rem;">Separate multiple skills with commas</small>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                <span id="btnText">Create Account</span>
+                <span id="btnLoader" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Creating...
+                </span>
+            </button>
+        </form>
+
+        <div class="form-footer">
+            <p>Already have an account? <a href="login.html">Sign in here</a></p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfLoggedIn();
+
+        // Handle registration form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const userData = {
+                name: formData.get('name').trim(),
+                email: formData.get('email').trim().toLowerCase(),
+                password: formData.get('password'),
+                college: formData.get('college').trim(),
+                phone: formData.get('phone').trim(),
+                skills: formData.get('skills') ? formData.get('skills').split(',').map(skill => skill.trim()).filter(skill => skill) : []
+            };
+
+            // Basic validation
+            if (!userData.name || !userData.email || !userData.password || !userData.college || !userData.phone) {
+                UIHelpers.showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            if (userData.password.length < 6) {
+                UIHelpers.showAlert('Password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(userData.phone)) {
+                UIHelpers.showAlert('Please enter a valid 10-digit phone number', 'error');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+
+            try {
+                const response = await APIClient.register(userData);
+                
+                if (response.success) {
+                    // Store token
+                    TokenManager.setToken(response.token);
+                    
+                    UIHelpers.showAlert('Account created successfully! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    UIHelpers.showAlert(response.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                UIHelpers.showAlert(error.message || 'Registration failed. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        // Phone number input formatting
+        document.getElementById('phone').addEventListener('input', (e) => {
+            const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+            e.target.value = value.slice(0, 10); // Limit to 10 digits
+        });
+
+        // Skills input formatting
+        document.getElementById('skills').addEventListener('blur', (e) => {
+            if (e.target.value) {
+                const skills = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+                e.target.value = skills.join(', ');
+            }
+        });
+    </script>
+</body>
+</html>

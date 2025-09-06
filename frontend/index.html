@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTverse - Online Hackathon Management</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>HTverse</h2>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="hackathons.html">Browse Hackathons</a>
+                <a href="login.html" class="btn-secondary">Login</a>
+                <a href="register.html" class="btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Build. Compete. Win.</h1>
+            <p class="hero-subtitle">Join the ultimate hackathon experience. Connect with innovators, showcase your skills, and compete for amazing prizes.</p>
+            <div class="hero-buttons">
+                <a href="hackathons.html" class="btn-primary btn-large">Explore Hackathons</a>
+                <a href="register.html" class="btn-secondary btn-large">Join as Participant</a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number" id="totalHackathons">0</span>
+                <span class="stat-label">Active Hackathons</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Participants</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">₹2L+</span>
+                <span class="stat-label">Prize Pool</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Why Choose HTverse?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Easy Registration</h3>
+                    <p>Simple one-click registration for hackathons. Create your profile and join competitions instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Team Management</h3>
+                    <p>Form teams, invite members, and collaborate effectively with built-in team management tools.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>Real-time Leaderboards</h3>
+                    <p>Track your progress and see live rankings throughout the competition.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure Platform</h3>
+                    <p>Enterprise-grade security with JWT authentication and role-based access control.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Start Your Hackathon Journey?</h2>
+            <p>Join thousands of developers and innovators on HTverse</p>
+            <a href="register.html" class="btn-primary btn-large">Get Started Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>HTverse</h3>
+                    <p>Your universe of hackathon innovation</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Platform</h4>
+                    <a href="hackathons.html">Browse Hackathons</a>
+                    <a href="register.html">Sign Up</a>
+                    <a href="login.html">Login</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 HTverse. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Load hackathon stats on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/hackathons');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('totalHackathons').textContent = data.total;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        });
+    </script>
+</body>
+</html>

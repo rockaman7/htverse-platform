@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - HTverse</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <h2>
+            <a href="index.html" style="text-decoration: none; color: #667eea"
+              >🚀 HTverse</a
+            >
+          </h2>
+        </div>
+        <div class="nav-links">
+          <a href="hackathons.html">Browse Hackathons</a>
+          <a href="admin.html" class="btn-secondary">Admin Panel</a>
+          <a href="#" onclick="logout()" class="btn-danger">Logout</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Admin Dashboard -->
+    <section class="dashboard">
+      <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+          <div>
+            <h1>Admin Panel</h1>
+            <p id="adminWelcome">Manage hackathons and platform settings</p>
+          </div>
+          <button onclick="showCreateHackathonModal()" class="btn-primary">
+            <i class="fas fa-plus"></i> Create Hackathon
+          </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3 id="totalHackathons">0</h3>
+            <p>Total Hackathons</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalUsers">0</h3>
+            <p>Total Users</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="activeHackathons">0</h3>
+            <p>Active Hackathons</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="totalPrizePool">₹0</h3>
+            <p>Total Prize Pool</p>
+          </div>
+        </div>
+
+        <!-- Hackathons Management -->
+        <div
+          style="
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-top: 2rem;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 2rem;
+            "
+          >
+            <h2>Manage Hackathons</h2>
+            <div style="display: flex; gap: 1rem; align-items: center">
+              <select
+                id="statusFilter"
+                style="
+                  padding: 8px 12px;
+                  border: 2px solid #e1e5e9;
+                  border-radius: 6px;
+                "
+              >
+                <option value="">All Status</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+              <button
+                onclick="loadHackathons()"
+                class="btn-secondary"
+                style="padding: 8px 12px"
+              >
+                <i class="fas fa-refresh"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div id="hackathonsTable">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <p>Loading hackathons...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Create/Edit Hackathon Modal -->
+    <div id="hackathonModal" class="modal">
+      <div class="modal-content" style="max-width: 600px">
+        <span class="close" onclick="closeHackathonModal()">&times;</span>
+        <h2 id="modalTitle">Create New Hackathon</h2>
+
+        <form id="hackathonForm">
+          <div class="form-group">
+            <label for="title">Hackathon Title *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              maxlength="100"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea
+              id="description"
+              name="description"
+              required
+              maxlength="2000"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+            <div class="form-group">
+              <label for="startDate">Start Date *</label>
+              <input
+                type="datetime-local"
+                id="startDate"
+                name="startDate"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="endDate">End Date *</label>
+              <input
+                type="datetime-local"
+                id="endDate"
+                name="endDate"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="registrationDeadline">Registration Deadline *</label>
+            <input
+              type="datetime-local"
+              id="registrationDeadline"
+              name="registrationDeadline"
+              required
+            />
+          </div>
+
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem"
+          >
+            <div class="form-group">
+              <label for="maxTeamSize">Max Team Size *</label>
+              <input
+                type="number"
+                id="maxTeamSize"
+                name="maxTeamSize"
+                required
+                min="1"
+                max="10"
+                value="4"
+              />
+            </div>
+            <div class="form-group">
+              <label for="maxParticipants">Max Participants *</label>
+              <input
+                type="number"
+                id="maxParticipants"
+                name="maxParticipants"
+                required
+                min="1"
+                value="100"
+              />
+            </div>
+            <div class="form-group">
+              <label for="prizePool">Prize Pool (₹) *</label>
+              <input
+                type="number"
+                id="prizePool"
+                name="prizePool"
+                required
+                min="0"
+                value="50000"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="categories">Categories *</label>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+              "
+            >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input
+                  type="checkbox"
+                  name="categories"
+                  value="Web Development"
+                />
+                Web Development
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input
+                  type="checkbox"
+                  name="categories"
+                  value="Mobile Development"
+                />
+                Mobile Development
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input type="checkbox" name="categories" value="AI/ML" />
+                AI/ML
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input type="checkbox" name="categories" value="Blockchain" />
+                Blockchain
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input type="checkbox" name="categories" value="IoT" />
+                IoT
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input
+                  type="checkbox"
+                  name="categories"
+                  value="Game Development"
+                />
+                Game Development
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input type="checkbox" name="categories" value="Data Science" />
+                Data Science
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-weight: normal;
+                "
+              >
+                <input
+                  type="checkbox"
+                  name="categories"
+                  value="Cybersecurity"
+                />
+                Cybersecurity
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rules">Rules (Optional)</label>
+            <textarea
+              id="rules"
+              name="rules"
+              rows="4"
+              placeholder="Enter rules separated by new lines"
+            ></textarea>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 1rem;
+              justify-content: flex-end;
+              margin-top: 2rem;
+            "
+          >
+            <button
+              type="button"
+              onclick="closeHackathonModal()"
+              class="btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn-primary" id="submitBtn">
+              <span id="btnText">Create Hackathon</span>
+              <span id="btnLoader" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i> Creating...
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+      // Protect admin page
+      if (!requireAuth()) {
+        // requireAuth will handle redirect
+      } else {
+        checkAdminRole();
+      }
+
+      let hackathons = [];
+      let currentUser = null;
+
+      async function checkAdminRole() {
+        try {
+          const response = await APIClient.getProfile();
+          if (response.success) {
+            currentUser = response.user;
+            if (currentUser.role !== "admin") {
+              UIHelpers.showAlert(
+                "Access denied. Admin privileges required.",
+                "error"
+              );
+              setTimeout(() => {
+                window.location.href = "dashboard.html";
+              }, 2000);
+              return;
+            }
+
+            document.getElementById(
+              "adminWelcome"
+            ).textContent = `Welcome, ${currentUser.name}`;
+            loadDashboardData();
+          }
+        } catch (error) {
+          UIHelpers.showAlert("Failed to verify admin privileges", "error");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 2000);
+        }
+      }
+
+      async function loadDashboardData() {
+        await Promise.all([loadHackathons(), loadStats()]);
+      }
+
+      async function loadHackathons() {
+        try {
+          const response = await APIClient.getHackathons();
+          if (response.success) {
+            hackathons = response.data;
+            displayHackathonsTable();
+          }
+        } catch (error) {
+          console.error("Load hackathons error:", error);
+          UIHelpers.showAlert("Failed to load hackathons", "error");
+        }
+      }
+
+      async function loadStats() {
+        try {
+          const hackathonsResponse = await APIClient.getHackathons();
+          if (hackathonsResponse.success) {
+            const hackathons = hackathonsResponse.data;
+            const activeHackathons = hackathons.filter(
+              (h) => h.status === "upcoming" || h.status === "ongoing"
+            );
+            const totalPrizePool = hackathons.reduce(
+              (sum, h) => sum + h.prizePool,
+              0
+            );
+
+            document.getElementById("totalHackathons").textContent =
+              hackathons.length;
+            document.getElementById("activeHackathons").textContent =
+              activeHackathons.length;
+            document.getElementById("totalPrizePool").textContent =
+              UIHelpers.formatCurrency(totalPrizePool);
+
+            // Calculate total users from participants
+            const uniqueParticipants = new Set();
+            hackathons.forEach((h) => {
+              h.participants.forEach((p) =>
+                uniqueParticipants.add(p._id || p.id)
+              );
+            });
+            document.getElementById("totalUsers").textContent =
+              uniqueParticipants.size;
+          }
+        } catch (error) {
+          console.error("Load stats error:", error);
+        }
+      }
+
+      function displayHackathonsTable() {
+        const statusFilter = document.getElementById("statusFilter").value;
+        let filteredHackathons = hackathons;
+
+        if (statusFilter) {
+          filteredHackathons = hackathons.filter(
+            (h) => h.status === statusFilter
+          );
+        }
+
+        if (filteredHackathons.length === 0) {
+          document.getElementById("hackathonsTable").innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #666;">
+                        <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <h3>No Hackathons Found</h3>
+                        <p>Start by creating your first hackathon!</p>
+                    </div>
+                `;
+          return;
+        }
+
+        const tableHTML = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #e1e5e9;">
+                                <th style="text-align: left; padding: 1rem; font-weight: 600;">Title</th>
+                                <th style="text-align: left; padding: 1rem; font-weight: 600;">Status</th>
+                                <th style="text-align: left; padding: 1rem; font-weight: 600;">Participants</th>
+                                <th style="text-align: left; padding: 1rem; font-weight: 600;">Prize</th>
+                                <th style="text-align: left; padding: 1rem; font-weight: 600;">Dates</th>
+                                <th style="text-align: center; padding: 1rem; font-weight: 600;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredHackathons
+                              .map((hackathon) => createHackathonRow(hackathon))
+                              .join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+        document.getElementById("hackathonsTable").innerHTML = tableHTML;
+      }
+
+      function createHackathonRow(hackathon) {
+        const statusColors = {
+          upcoming: "#667eea",
+          ongoing: "#27ae60",
+          completed: "#95a5a6",
+          cancelled: "#e74c3c",
+        };
+
+        return `
+                <tr style="border-bottom: 1px solid #e1e5e9;">
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${
+                          hackathon.title
+                        }</div>
+                        <div style="font-size: 0.875rem; color: #666;">${hackathon.categories.join(
+                          ", "
+                        )}</div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <span style="background: ${
+                          statusColors[hackathon.status]
+                        }; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                            ${hackathon.status}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 600;">${
+                          hackathon.participants.length
+                        }/${hackathon.maxParticipants}</div>
+                        <div style="font-size: 0.875rem; color: #666;">
+                            ${
+                              hackathon.maxParticipants -
+                              hackathon.participants.length
+                            } spots left
+                        </div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 600; color: #27ae60;">${UIHelpers.formatCurrency(
+                          hackathon.prizePool
+                        )}</div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="font-size: 0.875rem; color: #666;">
+                            <div>Start: ${UIHelpers.formatDate(
+                              hackathon.startDate
+                            )}</div>
+                            <div>End: ${UIHelpers.formatDate(
+                              hackathon.endDate
+                            )}</div>
+                        </div>
+                    </td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <a href="hackathon-detail.html?id=${
+                              hackathon._id
+                            }" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button onclick="editHackathon('${
+                              hackathon._id
+                            }')" class="btn-primary" style="padding: 4px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteHackathon('${
+                              hackathon._id
+                            }', '${
+          hackathon.title
+        }')" class="btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+      }
+
+      // Modal functions
+      function showCreateHackathonModal() {
+        document.getElementById("modalTitle").textContent =
+          "Create New Hackathon";
+        document.getElementById("btnText").textContent = "Create Hackathon";
+        document.getElementById("hackathonForm").reset();
+        document.getElementById("hackathonModal").style.display = "block";
+
+        // Set default dates
+        const now = new Date();
+        const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        document.getElementById("registrationDeadline").value = nextWeek
+          .toISOString()
+          .slice(0, 16);
+        document.getElementById("startDate").value = nextMonth
+          .toISOString()
+          .slice(0, 16);
+        document.getElementById("endDate").value = new Date(
+          nextMonth.getTime() + 2 * 24 * 60 * 60 * 1000
+        )
+          .toISOString()
+          .slice(0, 16);
+      }
+
+      function closeHackathonModal() {
+        document.getElementById("hackathonModal").style.display = "none";
+      }
+
+      // Filter hackathons
+      document
+        .getElementById("statusFilter")
+        .addEventListener("change", displayHackathonsTable);
+
+      // Handle hackathon form submission
+      document
+        .getElementById("hackathonForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const submitBtn = document.getElementById("submitBtn");
+          const btnText = document.getElementById("btnText");
+          const btnLoader = document.getElementById("btnLoader");
+
+          // Get form data
+          const formData = new FormData(e.target);
+          const categories = Array.from(
+            document.querySelectorAll('input[name="categories"]:checked')
+          ).map((cb) => cb.value);
+
+          if (categories.length === 0) {
+            UIHelpers.showAlert("Please select at least one category", "error");
+            return;
+          }
+
+          const hackathonData = {
+            title: formData.get("title").trim(),
+            description: formData.get("description").trim(),
+            startDate: formData.get("startDate"),
+            endDate: formData.get("endDate"),
+            registrationDeadline: formData.get("registrationDeadline"),
+            maxTeamSize: parseInt(formData.get("maxTeamSize")),
+            maxParticipants: parseInt(formData.get("maxParticipants")),
+            prizePool: parseInt(formData.get("prizePool")),
+            categories: categories,
+            rules: formData.get("rules")
+              ? formData
+                  .get("rules")
+                  .split("\n")
+                  .filter((rule) => rule.trim())
+              : [],
+            judgesCriteria: [
+              { criterion: "Innovation & Creativity", weightage: 30 },
+              { criterion: "Technical Implementation", weightage: 30 },
+              { criterion: "Business Impact", weightage: 25 },
+              { criterion: "Presentation Quality", weightage: 15 },
+            ],
+          };
+
+          // Show loading
+          submitBtn.disabled = true;
+          btnText.style.display = "none";
+          btnLoader.style.display = "inline";
+
+          try {
+            const response = await APIClient.createHackathon(hackathonData);
+            if (response.success) {
+              UIHelpers.showAlert("Hackathon created successfully!", "success");
+              closeHackathonModal();
+              loadDashboardData();
+            }
+          } catch (error) {
+            UIHelpers.showAlert(
+              error.message || "Failed to create hackathon",
+              "error"
+            );
+          } finally {
+            submitBtn.disabled = false;
+            btnText.style.display = "inline";
+            btnLoader.style.display = "none";
+          }
+        });
+
+      // Delete hackathon
+      async function deleteHackathon(hackathonId, hackathonTitle) {
+        if (
+          !confirm(
+            `Are you sure you want to delete "${hackathonTitle}"? This action cannot be undone.`
+          )
+        )
+          return;
+
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/hackathons/${hackathonId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${TokenManager.getToken()}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          if (data.success) {
+            UIHelpers.showAlert("Hackathon deleted successfully", "success");
+            loadDashboardData();
+          } else {
+            UIHelpers.showAlert(
+              data.message || "Failed to delete hackathon",
+              "error"
+            );
+          }
+        } catch (error) {
+          UIHelpers.showAlert("Failed to delete hackathon", "error");
+        }
+      }
+
+      // Edit hackathon (placeholder)
+      // Replace the placeholder edit function
+      async function editHackathon(hackathonId) {
+        try {
+          const response = await APIClient.getHackathon(hackathonId);
+          if (response.success) {
+            const hackathon = response.data;
+
+            // Populate modal with existing data
+            document.getElementById("modalTitle").textContent =
+              "Edit Hackathon";
+            document.getElementById("btnText").textContent = "Update Hackathon";
+
+            // Fill form fields
+            document.getElementById("title").value = hackathon.title;
+            document.getElementById("description").value =
+              hackathon.description;
+            document.getElementById("startDate").value = new Date(
+              hackathon.startDate
+            )
+              .toISOString()
+              .slice(0, 16);
+            document.getElementById("endDate").value = new Date(
+              hackathon.endDate
+            )
+              .toISOString()
+              .slice(0, 16);
+            document.getElementById("registrationDeadline").value = new Date(
+              hackathon.registrationDeadline
+            )
+              .toISOString()
+              .slice(0, 16);
+            document.getElementById("maxTeamSize").value =
+              hackathon.maxTeamSize;
+            document.getElementById("maxParticipants").value =
+              hackathon.maxParticipants;
+            document.getElementById("prizePool").value = hackathon.prizePool;
+            document.getElementById("rules").value = hackathon.rules.join("\n");
+
+            // Check categories
+            hackathon.categories.forEach((category) => {
+              const checkbox = document.querySelector(
+                `input[name="categories"][value="${category}"]`
+              );
+              if (checkbox) checkbox.checked = true;
+            });
+
+            // Store hackathon ID for update
+            document.getElementById("hackathonForm").dataset.hackathonId =
+              hackathonId;
+
+            // Show modal
+            document.getElementById("hackathonModal").style.display = "block";
+          }
+        } catch (error) {
+          UIHelpers.showAlert("Failed to load hackathon details", "error");
+        }
+      }
+
+      // Update the form submission handler to handle both create and edit
+      document
+        .getElementById("hackathonForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const submitBtn = document.getElementById("submitBtn");
+          const btnText = document.getElementById("btnText");
+          const btnLoader = document.getElementById("btnLoader");
+
+          const hackathonId = e.target.dataset.hackathonId;
+          const isEdit = !!hackathonId;
+
+          // ... rest of the form handling code stays the same ...
+
+          try {
+            let response;
+            if (isEdit) {
+              // Update existing hackathon
+              response = await fetch(
+                `http://localhost:5000/api/hackathons/${hackathonId}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${TokenManager.getToken()}`,
+                  },
+                  body: JSON.stringify(hackathonData),
+                }
+              );
+              response = await response.json();
+            } else {
+              // Create new hackathon
+              response = await APIClient.createHackathon(hackathonData);
+            }
+
+            if (response.success) {
+              UIHelpers.showAlert(
+                `Hackathon ${isEdit ? "updated" : "created"} successfully!`,
+                "success"
+              );
+              closeHackathonModal();
+              loadDashboardData();
+            }
+          } catch (error) {
+            UIHelpers.showAlert(
+              error.message ||
+                `Failed to ${isEdit ? "update" : "create"} hackathon`,
+              "error"
+            );
+          } finally {
+            // Reset form state
+            delete e.target.dataset.hackathonId;
+            // ... rest of cleanup code ...
+          }
+        });
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("hackathonModal");
+        if (event.target === modal) {
+          closeHackathonModal();
+        }
+      };
+    </script>
+  </body>
+</html>

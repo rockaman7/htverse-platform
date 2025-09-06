@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HTverse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html" style="text-decoration: none; color: #667eea;">HTverse</a></h2>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="hackathons.html">Browse Hackathons</a>
+                <a href="register.html" class="btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Form -->
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in to your HTverse account</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #666; cursor: pointer;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                <span id="btnText">Sign In</span>
+                <span id="btnLoader" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Signing in...
+                </span>
+            </button>
+        </form>
+
+        <div class="form-footer">
+            <p>Don't have an account? <a href="register.html">Create one here</a></p>
+        </div>
+
+        <!-- Demo Accounts Section -->
+        <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+            <h4 style="margin-bottom: 0.5rem; color: #333;">Demo Accounts</h4>
+            <p style="font-size: 0.875rem; color: #666; margin-bottom: 1rem;">Use these accounts for testing:</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button type="button" class="btn-secondary" style="padding: 8px 12px; font-size: 0.875rem;" onclick="fillDemoAdmin()">
+                    <i class="fas fa-user-shield"></i> Admin Login
+                </button>
+                <button type="button" class="btn-secondary" style="padding: 8px 12px; font-size: 0.875rem;" onclick="fillDemoParticipant()">
+                    <i class="fas fa-user"></i> Participant Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfLoggedIn();
+
+        // Handle login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const credentials = {
+                email: formData.get('email').trim().toLowerCase(),
+                password: formData.get('password')
+            };
+
+            // Basic validation
+            if (!credentials.email || !credentials.password) {
+                UIHelpers.showAlert('Please enter both email and password', 'error');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+
+            try {
+                const response = await APIClient.login(credentials);
+                
+                if (response.success) {
+                    // Store token
+                    TokenManager.setToken(response.token);
+                    
+                    UIHelpers.showAlert(`Welcome back, ${response.user.name}!`, 'success');
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (response.user.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }, 1500);
+                } else {
+                    UIHelpers.showAlert(response.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                UIHelpers.showAlert(error.message || 'Login failed. Please check your credentials.', 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', () => {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('togglePassword');
+            const icon = toggleBtn.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        });
+
+        // Demo account functions
+        function fillDemoAdmin() {
+            document.getElementById('email').value = 'admin@hackathon.com';
+            document.getElementById('password').value = 'admin123';
+            UIHelpers.showAlert('Admin credentials filled. Click Sign In to continue.', 'info');
+        }
+
+        function fillDemoParticipant() {
+            document.getElementById('email').value = 'john@student.com';  
+            document.getElementById('password').value = 'john123';
+            UIHelpers.showAlert('Participant credentials filled. Click Sign In to continue.', 'info');
+        }
+
+        // Handle URL parameters for redirects
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        if (redirect) {
+            UIHelpers.showAlert('Please log in to access that page', 'info');
+        }
+    </script>
+</body>
+</html>

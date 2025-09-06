@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - HTverse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html" style="text-decoration: none; color: #667eea;"> HTverse</a></h2>
+            </div>
+            <div class="nav-links">
+                <a href="hackathons.html">Browse Hackathons</a>
+                <a href="dashboard.html" class="btn-secondary">Dashboard</a>
+                <a href="#" onclick="logout()" class="btn-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <section class="dashboard">
+        <div class="container">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div>
+                    <h1 id="welcomeMessage">Welcome back!</h1>
+                    <p id="userRole">Loading...</p>
+                </div>
+                <a href="hackathons.html" class="btn-primary">
+                    <i class="fas fa-plus"></i> Join Hackathon
+                </a>
+            </div>
+
+            <!-- User Info Card -->
+            <div class="user-info" id="userInfo">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading your profile...</p>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="registeredCount">0</h3>
+                    <p>Hackathons Joined</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="completedCount">0</h3>
+                    <p>Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="upcomingCount">0</h3>
+                    <p>Upcoming</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalPrizes">₹0</h3>
+                    <p>Total Prize Pool</p>
+                </div>
+            </div>
+
+            <!-- My Hackathons Section -->
+            <div style="margin-top: 3rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>My Hackathons</h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <select id="filterStatus" style="padding: 8px 12px; border: 2px solid #e1e5e9; border-radius: 6px;">
+                            <option value="all">All Status</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="myHackathons">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading your hackathons...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 3rem; text-align: center; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="hackathons.html" class="btn-primary">
+                        <i class="fas fa-search"></i> Browse Hackathons
+                    </a>
+                    <button onclick="updateProfile()" class="btn-secondary">
+                        <i class="fas fa-user-edit"></i> Update Profile
+                    </button>
+                    <a href="hackathons.html?filter=my-registered" class="btn-secondary">
+                        <i class="fas fa-calendar"></i> My Schedule
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Protect this page
+        if (!requireAuth()) {
+            // requireAuth will handle the redirect
+        } else {
+            loadDashboard();
+        }
+
+        let currentUser = null;
+        let myHackathons = [];
+
+        async function loadDashboard() {
+            try {
+                // Load user profile
+                const userResponse = await APIClient.getProfile();
+                if (userResponse.success) {
+                    currentUser = userResponse.user;
+                    displayUserInfo(currentUser);
+                }
+
+                // Load all hackathons to filter user's registered ones
+                const hackathonsResponse = await APIClient.getHackathons();
+                if (hackathonsResponse.success) {
+                    // Filter hackathons where user is registered
+                    myHackathons = hackathonsResponse.data.filter(hackathon => 
+                        hackathon.participants.some(participant => 
+                            participant._id === currentUser.id || participant.id === currentUser.id
+                        )
+                    );
+                    
+                    displayMyHackathons(myHackathons);
+                    updateStats(myHackathons);
+                }
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                UIHelpers.showAlert('Failed to load dashboard data', 'error');
+            }
+        }
+
+        function displayUserInfo(user) {
+            document.getElementById('welcomeMessage').textContent = `Welcome back, ${user.name}!`;
+            document.getElementById('userRole').textContent = `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} • ${user.college}`;
+            
+            const userInfoHtml = `
+                <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="margin-bottom: 0.5rem; color: #333;">${user.name}</h3>
+                        <p style="color: #666; margin-bottom: 0.5rem;">
+                            <i class="fas fa-envelope"></i> ${user.email}
+                        </p>
+                        <p style="color: #666; margin-bottom: 0.5rem;">
+                            <i class="fas fa-university"></i> ${user.college}
+                        </p>
+                        <p style="color: #666;">
+                            <i class="fas fa-phone"></i> ${user.phone}
+                        </p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <h4 style="margin-bottom: 1rem; color: #333;">Skills</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${user.skills && user.skills.length > 0 
+                                ? user.skills.map(skill => `<span class="category-tag">${skill}</span>`).join('')
+                                : '<span style="color: #999; font-style: italic;">No skills added yet</span>'
+                            }
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; margin: 0 auto 0.5rem;">
+                            ${user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <p style="font-size: 0.875rem; color: #666;">
+                            Member since ${UIHelpers.formatDate(user.createdAt)}
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('userInfo').innerHTML = userInfoHtml;
+        }
+
+        function updateStats(hackathons) {
+            const upcoming = hackathons.filter(h => h.status === 'upcoming').length;
+            const ongoing = hackathons.filter(h => h.status === 'ongoing').length;
+            const completed = hackathons.filter(h => h.status === 'completed').length;
+            const totalPrizePool = hackathons.reduce((sum, h) => sum + h.prizePool, 0);
+            
+            document.getElementById('registeredCount').textContent = hackathons.length;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('upcomingCount').textContent = upcoming + ongoing;
+            document.getElementById('totalPrizes').textContent = UIHelpers.formatCurrency(totalPrizePool);
+        }
+
+        function displayMyHackathons(hackathons) {
+            const container = document.getElementById('myHackathons');
+            
+            if (hackathons.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                        <h3 style="margin-bottom: 1rem; color: #333;">No Hackathons Yet</h3>
+                        <p style="color: #666; margin-bottom: 2rem;">Join your first hackathon to get started!</p>
+                        <a href="hackathons.html" class="btn-primary">Browse Hackathons</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const hackathonCards = hackathons.map(hackathon => {
+                const statusColor = {
+                    'upcoming': '#667eea',
+                    'ongoing': '#27ae60', 
+                    'completed': '#95a5a6',
+                    'cancelled': '#e74c3c'
+                };
+                
+                return `
+                    <div class="hackathon-card">
+                        <div class="hackathon-header">
+                            <h3>${hackathon.title}</h3>
+                            <div class="prize">🏆 ${UIHelpers.formatCurrency(hackathon.prizePool)}</div>
+                        </div>
+                        <div class="hackathon-body">
+                            <div class="hackathon-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>${UIHelpers.formatDate(hackathon.startDate)}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>${hackathon.participants.length}/${hackathon.maxParticipants}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span style="color: ${statusColor[hackathon.status] || '#666'}; font-weight: 600;">
+                                        ${hackathon.status.charAt(0).toUpperCase() + hackathon.status.slice(1)}
+                                    </span>
+                                </div>
+                            </div>
+                            <p style="color: #666; font-size: 0.875rem; margin-bottom: 1rem;">
+                                ${hackathon.description.substring(0, 120)}...
+                            </p>
+                            <div class="categories">
+                                ${hackathon.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="hackathon-footer">
+                            <span class="participants-count">
+                                Registered: ${UIHelpers.formatDate(hackathon.createdAt)}
+                            </span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="hackathon-detail.html?id=${hackathon._id}" class="btn-secondary" style="padding: 6px 12px; font-size: 0.875rem;">View Details</a>
+                                ${hackathon.status === 'upcoming' ? 
+                                    `<button onclick="unregisterFromHackathon('${hackathon._id}')" class="btn-danger" style="padding: 6px 12px; font-size: 0.875rem;">Leave</button>` : 
+                                    ''
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `<div class="hackathons-grid">${hackathonCards}</div>`;
+        }
+
+        // Filter hackathons by status
+        document.getElementById('filterStatus').addEventListener('change', (e) => {
+            const status = e.target.value;
+            let filteredHackathons = myHackathons;
+            
+            if (status !== 'all') {
+                filteredHackathons = myHackathons.filter(h => h.status === status);
+            }
+            
+            displayMyHackathons(filteredHackathons);
+        });
+
+        // Unregister from hackathon
+        async function unregisterFromHackathon(hackathonId) {
+            if (!confirm('Are you sure you want to leave this hackathon?')) return;
+            
+            try {
+                const response = await APIClient.unregisterFromHackathon(hackathonId);
+                if (response.success) {
+                    UIHelpers.showAlert('Successfully left the hackathon', 'success');
+                    // Reload dashboard
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                }
+            } catch (error) {
+                UIHelpers.showAlert(error.message || 'Failed to leave hackathon', 'error');
+            }
+        }
+
+        // Update profile function (placeholder)
+        function updateProfile() {
+            window.location.href = 'profile.html';
+            // UIHelpers.showAlert('Profile update feature coming soon!', 'info');
+        }
+    </script>
+</body>
+</html>
