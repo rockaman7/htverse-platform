@@ -143,7 +143,7 @@ class AdminManager {
         if (!await this.checkAdminRole()) return;
 
         try {
-            const response = await fetch(`${API_BASE}/admin/hackathons`, {
+            const response = await fetch(`${API_BASE}/hackathons`, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                     'Content-Type': 'application/json'
@@ -190,7 +190,7 @@ class AdminManager {
     // Create new hackathon
     async createHackathon(hackathonData) {
         try {
-            const response = await fetch(`${API_BASE}/admin/hackathons`, {
+            const response = await fetch(`${API_BASE}/hackathons`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${this.token}`,

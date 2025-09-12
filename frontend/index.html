@@ -128,7 +128,7 @@
         // Load hackathon stats on page load
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/hackathons');
+                const response = await fetch('https://htverse-platform.onrender.com/api/hackathons');
                 const data = await response.json();
                 if (data.success) {
                     document.getElementById('totalHackathons').textContent = data.total;
