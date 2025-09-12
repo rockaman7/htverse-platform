@@ -574,13 +574,112 @@ body {
     padding: 2rem;
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     position: relative;
 }
 
+/* Form groups inside modal */
+.modal-content .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.modal-content label {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    display: block;
+    color: #222;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="datetime-local"],
+.modal-content textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+    background-color: #f8fafe;
+    transition: border-color 0.25s;
+}
+
+.modal-content input:hover,
+.modal-content textarea:hover,
+.modal-content input:focus,
+.modal-content textarea:focus {
+    border-color: #667eea;
+    background-color: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Date inputs row */
+.date-row {
+    display: flex;
+    gap: 1.2rem;
+}
+.date-row .form-group {
+    flex: 1;
+}
+
+/* Categories grid */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem 1rem;
+    margin-top: 0.5rem;
+    background: #f0f4ff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}
+
+.categories-grid label {
+    font-weight: normal;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.categories-grid input[type=checkbox] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Modal buttons */
+.modal-content .btn-primary,
+.modal-content .btn-secondary {
+    padding: 0.65rem 1.6rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.modal-content .btn-primary {
+    background: linear-gradient(90deg, #667eea, #7f53ac);
+    color: #fff;
+}
+
+.modal-content .btn-primary:hover {
+    background: linear-gradient(90deg, #7f53ac, #667eea);
+}
+
+.modal-content .btn-secondary {
+    background-color: #e2e8f0;
+    color: #2c3a59;
+}
+
+.modal-content .btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+/* Close button */
 .close {
-    color: #aaa;
-    float: right;
+    color: #999;
     font-size: 28px;
     font-weight: bold;
     position: absolute;
@@ -590,10 +689,10 @@ body {
 }
 
 .close:hover {
-    color: #000;
+    color: #667eea;
 }
 
-/* RESPONSIVE DESIGN - TABLET */
+/* RESPONSIVE STYLES */
 @media (max-width: 1024px) {
     .container {
         padding: 0 15px;
@@ -608,7 +707,6 @@ body {
     }
 }
 
-/* RESPONSIVE DESIGN - TABLET AND SMALL DESKTOP */
 @media (max-width: 768px) {
     /* Navigation */
     .nav-toggle {
@@ -694,7 +792,6 @@ body {
     }
 }
 
-/* RESPONSIVE DESIGN - MOBILE PHONES */
 @media (max-width: 480px) {
     /* Container */
     .container {
@@ -900,3 +997,134 @@ body {
         padding: 14px !important;
     }
 }
+
+/* Modal UI Enhancements */
+.modal-content {
+    max-width: 600px !important;
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(40, 58, 82, 0.15);
+    margin: 5% auto;
+}
+
+.modal-content .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.modal-content label {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    display: block;
+    color: #222;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="datetime-local"],
+.modal-content textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+    background-color: #f8fafe;
+    transition: border-color 0.25s;
+}
+
+.modal-content input:hover,
+.modal-content textarea:hover,
+.modal-content input:focus,
+.modal-content textarea:focus {
+    border-color: #667eea;
+    background-color: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Date inputs row */
+.date-row {
+    display: flex;
+    gap: 1.2rem;
+}
+.date-row .form-group {
+    flex: 1;
+}
+
+/* Categories grid */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem 1rem;
+    margin-top: 0.5rem;
+    background: #f0f4ff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}
+
+.categories-grid label {
+    font-weight: normal;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.categories-grid input[type=checkbox] {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Modal buttons */
+.modal-content .btn-primary,
+.modal-content .btn-secondary {
+    padding: 0.65rem 1.6rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.modal-content .btn-primary {
+    background: linear-gradient(90deg, #667eea, #7f53ac);
+    color: #fff;
+}
+
+.modal-content .btn-primary:hover {
+    background: linear-gradient(90deg, #7f53ac, #667eea);
+}
+
+.modal-content .btn-secondary {
+    background-color: #e2e8f0;
+    color: #2c3a59;
+}
+
+.modal-content .btn-secondary:hover {
+    background-color: #cbd5e1;
+}
+
+/* Close button */
+.close {
+    color: #999;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #667eea;
+}
+/* Responsive Modal */
+@media (max-width: 600px) {
+    .modal-content {
+        margin: 10% 5%;
+        padding: 1.5rem;
+        width: 90%;
+    }
+}  
