@@ -1,4 +1,4 @@
-const API_BASE = 'https://htverse-platform.onrender.com/api';
+// const API_BASE = 'https://htverse-platform.onrender.com/api';
 
 // Load and display hackathons
 async function loadHackathons() {
