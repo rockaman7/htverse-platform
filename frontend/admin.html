@@ -121,11 +121,11 @@
     </section>
 
     <!-- Create/Edit Hackathon Modal -->
+    <!-- Create/Edit Hackathon Modal -->
     <div id="hackathonModal" class="modal">
-      <div class="modal-content" style="max-width: 600px">
-        <span class="close" onclick="closeHackathonModal()">&times;</span>
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
         <h2 id="modalTitle">Create New Hackathon</h2>
-
         <form id="hackathonForm">
           <div class="form-group">
             <label for="title">Hackathon Title *</label>
@@ -149,7 +149,7 @@
             ></textarea>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+          <div class="date-row">
             <div class="form-group">
               <label for="startDate">Start Date *</label>
               <input
@@ -180,19 +180,17 @@
             />
           </div>
 
-          <div
-            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem"
-          >
+          <div class="date-row">
             <div class="form-group">
               <label for="maxTeamSize">Max Team Size *</label>
               <input
                 type="number"
                 id="maxTeamSize"
                 name="maxTeamSize"
-                required
                 min="1"
                 max="10"
                 value="4"
+                required
               />
             </div>
             <div class="form-group">
@@ -201,9 +199,9 @@
                 type="number"
                 id="maxParticipants"
                 name="maxParticipants"
-                required
                 min="1"
                 value="100"
+                required
               />
             </div>
             <div class="form-group">
@@ -212,127 +210,68 @@
                 type="number"
                 id="prizePool"
                 name="prizePool"
-                required
                 min="0"
                 value="50000"
+                required
               />
             </div>
           </div>
 
           <div class="form-group">
             <label for="categories">Categories *</label>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 0.5rem;
-                margin-top: 0.5rem;
-              "
-            >
+            <div class="categories-grid">
               <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
-              >
-                <input
+                ><input
                   type="checkbox"
                   name="categories"
                   value="Web Development"
                 />
-                Web Development
-              </label>
-              <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                Web Development</label
               >
-                <input
+              <label
+                ><input
                   type="checkbox"
                   name="categories"
                   value="Mobile Development"
                 />
-                Mobile Development
-              </label>
-              <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                Mobile Development</label
               >
-                <input type="checkbox" name="categories" value="AI/ML" />
-                AI/ML
-              </label>
               <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                ><input type="checkbox" name="categories" value="AI/ML" />
+                AI/ML</label
               >
-                <input type="checkbox" name="categories" value="Blockchain" />
-                Blockchain
-              </label>
               <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                ><input type="checkbox" name="categories" value="Blockchain" />
+                Blockchain</label
               >
-                <input type="checkbox" name="categories" value="IoT" />
-                IoT
-              </label>
               <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                ><input type="checkbox" name="categories" value="IoT" />
+                IoT</label
               >
-                <input
+              <label
+                ><input
                   type="checkbox"
                   name="categories"
                   value="Game Development"
                 />
-                Game Development
-              </label>
-              <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                Game Development</label
               >
-                <input type="checkbox" name="categories" value="Data Science" />
-                Data Science
-              </label>
               <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                  font-weight: normal;
-                "
+                ><input
+                  type="checkbox"
+                  name="categories"
+                  value="Data Science"
+                />
+                Data Science</label
               >
-                <input
+              <label
+                ><input
                   type="checkbox"
                   name="categories"
                   value="Cybersecurity"
                 />
-                Cybersecurity
-              </label>
+                Cybersecurity</label
+              >
             </div>
           </div>
 
@@ -346,26 +285,19 @@
             ></textarea>
           </div>
 
-          <div
-            style="
-              display: flex;
-              gap: 1rem;
-              justify-content: flex-end;
-              margin-top: 2rem;
-            "
-          >
+          <div class="modal-actions">
             <button
               type="button"
-              onclick="closeHackathonModal()"
-              class="btn-secondary"
+              class="btn btn-secondary"
+              onclick="closeModal()"
             >
               Cancel
             </button>
-            <button type="submit" class="btn-primary" id="submitBtn">
-              <span id="btnText">Create Hackathon</span>
-              <span id="btnLoader" style="display: none">
-                <i class="fas fa-spinner fa-spin"></i> Creating...
-              </span>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              <span id="btnText">Create</span>
+              <span id="btnLoader" style="display: none"
+                ><i class="fas fa-spinner fa-spin"></i> Creating...</span
+              >
             </button>
           </div>
         </form>
