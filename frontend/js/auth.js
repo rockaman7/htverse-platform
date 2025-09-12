@@ -157,6 +157,13 @@ class UIHelpers {
     });
   }
 
+  static formatCurrency(amount) {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount);
+  }
+  
   static async updateNavigation() {
     const navLinks = document.querySelector(".nav-links");
     if (!navLinks) return;
