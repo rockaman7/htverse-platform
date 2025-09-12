@@ -24,7 +24,7 @@ function displayHackathons(hackathons) {
                 <h3>${hackathon.title}</h3>
                 <p>${hackathon.description}</p>
                 <div class="hackathon-details">
-                    <span>Prize: ${hackathon.prize}</span>
+                    <span>Prize: ${UIHelpers.formatCurrency(hackathon.prize)}</span>
                     <span>Deadline: ${new Date(hackathon.deadline).toLocaleDateString()}</span>
                 </div>
                 <button onclick="joinHackathon('${hackathon._id}')">Join</button>
