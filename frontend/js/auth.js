@@ -157,20 +157,13 @@ class UIHelpers {
     });
   }
 
-  static formatCurrency(amount) {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-    }).format(amount);
-  }
-
   static async updateNavigation() {
     const navLinks = document.querySelector(".nav-links");
     if (!navLinks) return;
 
     if (TokenManager.isLoggedIn()) {
       try {
-        const profile = await APIClient.getProfile();
+        const profile = await APIClient.getProfile(); // Async fetch user profile
         if (profile.success) {
           const isAdmin = profile.user.role === "admin";
           navLinks.innerHTML = `
@@ -179,10 +172,16 @@ class UIHelpers {
           ${isAdmin ? `<a href="admin.html">Admin Panel</a>` : ""}
           <a href="#" onclick="logout()" class="btn-secondary">Logout</a>
         `;
+        } else {
+          // Fallback if no profile
+          navLinks.innerHTML = `
+          <a href="hackathons.html">Browse Hackathons</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="#" onclick="logout()" class="btn-secondary">Logout</a>
+        `;
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        // Fallback nav for logged in user without profile
         navLinks.innerHTML = `
         <a href="hackathons.html">Browse Hackathons</a>
         <a href="dashboard.html">Dashboard</a>
@@ -190,6 +189,7 @@ class UIHelpers {
       `;
       }
     } else {
+      // For guests
       navLinks.innerHTML = `
       <a href="#features">Features</a>
       <a href="hackathons.html">Browse Hackathons</a>
@@ -210,8 +210,8 @@ function logout() {
 }
 
 // Initialize navigation on page load
-document.addEventListener("DOMContentLoaded", () => {
-  UIHelpers.updateNavigation();
+document.addEventListener("DOMContentLoaded",async () => {
+  await UIHelpers.updateNavigation();
 });
 
 // Redirect if not logged in (for protected pages)
