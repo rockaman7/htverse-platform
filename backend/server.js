@@ -11,7 +11,27 @@ const app = express();
 // Middleware
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-app.use(cors()); // Enable CORS for all routes
+const allowedOrigins = [
+  'https://htverse-platform.vercel.app', // your frontend URL
+  // you can add more allowed origins here
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin for tools like Postman
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `CORS policy for origin ${origin} not allowed`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // if you’re sending cookies or auth headers
+}));
+
+// also add this if you expect OPTIONS preflight requests
+app.options('*', cors());
+
 
 // Import routes
 const authRoutes = require('./routes/auth');
