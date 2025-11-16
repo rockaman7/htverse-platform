@@ -2,14 +2,14 @@ const User = require("../models/User");
 const { verifyToken } = require("../utils/jwt");
 
 // Protect routes - verify JWT token
-const protect = async (req, res, next) => {
+const protect = async (req, res, next) => { // Middleware to protect routes
   try {
     // Allow OPTIONS preflight requests without auth
     if (req.method === "OPTIONS") {
       return next();
     }
 
-    let token;
+    let token; // Initialize token variable
 
     // Get token from header
     if (
@@ -33,15 +33,15 @@ const protect = async (req, res, next) => {
     // Get user from token
     req.user = await User.findById(decoded.userId);
 
+    // Check if user still exists
     if (!req.user) {
       return res.status(401).json({
         success: false,
         message: "No user found with this token",
       });
     }
-
     next();
-  } catch (error) {
+  } catch (error) { 
     return res.status(401).json({
       success: false,
       message: "Not authorized to access this route",
@@ -50,10 +50,10 @@ const protect = async (req, res, next) => {
 };
 
 // Role-based authorization
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
+const authorize = (...roles) => { // roles is an array of allowed roles
+  return (req, res, next) => { // Middleware to check user role
+    if (!roles.includes(req.user.role)) { 
+      return res.status(403).json({ 
         success: false,
         message: `User role ${req.user.role} is not authorized to access this route`,
       });
@@ -62,6 +62,7 @@ const authorize = (...roles) => {
   };
 };
 
+// Export middleware functions
 module.exports = {
   protect,
   authorize,

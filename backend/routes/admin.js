@@ -3,18 +3,18 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware to check admin role
-const adminOnly = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
-        next();
-    } else {
-        res.status(403).json({ message: 'Admin access required' });
+const adminOnly = (req, res, next) => { // Assuming req.user is set by previous auth middleware
+    if (req.user && req.user.role === 'admin') { // Check if user is admin
+        next(); // Proceed to the next middleware or route handler
+    } else { // If not admin, return 403 Forbidden
+        res.status(403).json({ message: 'Admin access required' }); 
     }
 };
 
 // Admin dashboard stats
-router.get('/dashboard', adminOnly, async (req, res) => {
+router.get('/dashboard', adminOnly, async (req, res) => { // this route is protected and only accessible by admins
     // Return dashboard statistics
-    res.json({
+    res.json({ 
         success: true,
         data: {
             totalUsers: 0,

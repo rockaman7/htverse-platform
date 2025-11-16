@@ -24,7 +24,7 @@ const register = async (req, res) => {
             password,
             college,
             phone,
-            skills: skills || []
+            skills: skills || [] // Default to empty array if skills not provided
         });
         
         // Generate token
