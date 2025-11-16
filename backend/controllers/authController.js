@@ -148,6 +148,29 @@ const getMe = async (req, res) => {
     }
 };
 
+// @desc    Forgot password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email required.' });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            // Always return success to prevent email discovery.
+            return res.status(200).json({ success: true, message: 'If your email exists in our system, reset instructions will be sent.' });
+        }
+        // In real system: generate token, save to DB, email link. For demo, just log.
+        console.log(`Password reset requested for: ${email}`);
+        return res.status(200).json({ success: true, message: 'If your email exists in our system, reset instructions will be sent.' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ success: false, message: 'Error during password reset request' });
+    }
+};
+
 module.exports = {
     register,
     login,
