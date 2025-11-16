@@ -67,7 +67,13 @@ const connectDB = async () => {
 };
 
 // Connect to database
-connectDB();
+connectDB().then(async () => {
+  // Seed demo accounts on startup (only if they don't exist)
+  if (process.env.SEED_DEMO_ACCOUNTS !== 'false') {
+    const seedDemoAccounts = require('./utils/seedDemoAccounts');
+    await seedDemoAccounts();
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

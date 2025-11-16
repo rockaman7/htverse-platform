@@ -144,6 +144,47 @@ hackathonSchema.virtual("isRegistrationOpen").get(function () {
   );
 });
 
+// Virtual for calculating current status based on dates
+hackathonSchema.virtual("currentStatus").get(function () {
+  const now = new Date();
+  
+  // If hackathon is cancelled, return cancelled
+  if (this.status === "cancelled") {
+    return "cancelled";
+  }
+  
+  // If end date has passed, it's completed
+  if (this.endDate && new Date(this.endDate) < now) {
+    return "completed";
+  }
+  
+  // If start date has passed but end date hasn't, it's ongoing
+  if (this.startDate && new Date(this.startDate) <= now && this.endDate && new Date(this.endDate) >= now) {
+    return "ongoing";
+  }
+  
+  // Otherwise it's upcoming
+  return "upcoming";
+});
+
+// Method to update status based on dates
+hackathonSchema.methods.updateStatus = function () {
+  const now = new Date();
+  
+  // Don't update if manually set to cancelled
+  if (this.status === "cancelled") {
+    return;
+  }
+  
+  if (this.endDate && new Date(this.endDate) < now) {
+    this.status = "completed";
+  } else if (this.startDate && new Date(this.startDate) <= now && this.endDate && new Date(this.endDate) >= now) {
+    this.status = "ongoing";
+  } else {
+    this.status = "upcoming";
+  }
+};
+
 // Validate dates
 hackathonSchema.pre("save", function (next) {
   if (this.startDate >= this.endDate) {
@@ -152,6 +193,10 @@ hackathonSchema.pre("save", function (next) {
   if (this.registrationDeadline >= this.startDate) {
     next(new Error("Registration deadline must be before start date"));
   }
+  
+  // Auto-update status before saving
+  this.updateStatus();
+  
   next();
 });
 

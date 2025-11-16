@@ -50,14 +50,42 @@ const getHackathons = async (req, res) => {
         // Pagination
         const skip = (page - 1) * limit;
         
-        // Execute query with lean() for better performance
+        // Execute query
         const hackathons = await Hackathon.find(query)
             .populate('organizer', 'name email')
             .populate('participants', 'name email college')
             .sort(sortOptions)
             .skip(skip)
-            .limit(parseInt(limit))
-            .lean(); // Performance optimization
+            .limit(parseInt(limit));
+        
+        // Update status for each hackathon based on dates
+        const now = new Date();
+        const updatedHackathons = hackathons.map(hackathon => {
+            // Calculate current status
+            let currentStatus = hackathon.status;
+            
+            if (hackathon.status !== 'cancelled') {
+                if (hackathon.endDate && new Date(hackathon.endDate) < now) {
+                    currentStatus = 'completed';
+                } else if (hackathon.startDate && new Date(hackathon.startDate) <= now && hackathon.endDate && new Date(hackathon.endDate) >= now) {
+                    currentStatus = 'ongoing';
+                } else {
+                    currentStatus = 'upcoming';
+                }
+                
+                // Update in database if status changed (async, don't wait)
+                if (currentStatus !== hackathon.status) {
+                    Hackathon.findByIdAndUpdate(hackathon._id, { status: currentStatus }, { new: false }).catch(err => {
+                        console.error('Error updating hackathon status:', err);
+                    });
+                }
+            }
+            
+            // Convert to plain object and update status
+            const hackathonObj = hackathon.toObject();
+            hackathonObj.status = currentStatus;
+            return hackathonObj;
+        });
         
         // Get total count for pagination
         const total = await Hackathon.countDocuments(query);
@@ -65,11 +93,11 @@ const getHackathons = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Hackathons fetched successfully',
-            count: hackathons.length,
+            count: updatedHackathons.length,
             total,
             page: parseInt(page),
             pages: Math.ceil(total / limit),
-            data: hackathons
+            data: updatedHackathons
         });
         
     } catch (error) {
@@ -89,8 +117,7 @@ const getHackathon = async (req, res) => {
     try {
         const hackathon = await Hackathon.findById(req.params.id)
             .populate('organizer', 'name email')
-            .populate('participants', 'name email college skills')
-            .lean(); // Performance optimization
+            .populate('participants', 'name email college skills');
         
         if (!hackathon) {
             return res.status(404).json({
@@ -100,10 +127,33 @@ const getHackathon = async (req, res) => {
             });
         }
         
+        // Update status based on dates
+        const now = new Date();
+        let currentStatus = hackathon.status;
+        
+        if (hackathon.status !== 'cancelled') {
+            if (hackathon.endDate && new Date(hackathon.endDate) < now) {
+                currentStatus = 'completed';
+            } else if (hackathon.startDate && new Date(hackathon.startDate) <= now && hackathon.endDate && new Date(hackathon.endDate) >= now) {
+                currentStatus = 'ongoing';
+            } else {
+                currentStatus = 'upcoming';
+            }
+            
+            // Update in database if status changed
+            if (currentStatus !== hackathon.status) {
+                await Hackathon.findByIdAndUpdate(hackathon._id, { status: currentStatus });
+            }
+        }
+        
+        // Convert to plain object and update status
+        const hackathonObj = hackathon.toObject();
+        hackathonObj.status = currentStatus;
+        
         res.status(200).json({
             success: true,
             message: 'Hackathon fetched successfully',
-            data: hackathon
+            data: hackathonObj
         });
         
     } catch (error) {
