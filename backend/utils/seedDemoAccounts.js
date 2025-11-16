@@ -25,9 +25,46 @@ const demoAccounts = [
   }
 ];
 
+// Fix existing accounts with potentially double-hashed passwords
+const fixExistingAccounts = async () => {
+  try {
+    console.log('🔧 Checking and fixing existing demo accounts...');
+    
+    for (const account of demoAccounts) {
+      const existingUser = await User.findOne({ email: account.email }).select('+password');
+      
+      if (existingUser) {
+        // Test if the stored password works with the plain password
+        const isPasswordValid = await bcrypt.compare(account.password, existingUser.password);
+        
+        if (!isPasswordValid) {
+          // Password doesn't match - likely double-hashed, fix it
+          console.log(`🔧 Fixing password for ${account.email}...`);
+          const correctlyHashedPassword = await bcrypt.hash(account.password, 12);
+          
+          // Update using collection directly to bypass all Mongoose hooks
+          await User.collection.updateOne(
+            { email: account.email },
+            { $set: { password: correctlyHashedPassword } }
+          );
+          
+          console.log(`✅ Fixed password for ${account.email}`);
+        } else {
+          console.log(`✅ Password for ${account.email} is already correct`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error fixing existing accounts:', error);
+  }
+};
+
 const seedDemoAccounts = async () => {
   try {
     console.log('🌱 Seeding demo accounts...');
+    
+    // First, fix any existing accounts with double-hashed passwords
+    await fixExistingAccounts();
     
     for (const account of demoAccounts) {
       // Check if user already exists
@@ -38,14 +75,9 @@ const seedDemoAccounts = async () => {
         continue;
       }
       
-      // Hash password
-      const hashedPassword = await bcrypt.hash(account.password, 12);
-      
-      // Create user
-      await User.create({
-        ...account,
-        password: hashedPassword
-      });
+      // Create user with plain password - User model's pre-save hook will hash it
+      // This ensures single hashing for new accounts
+      await User.create(account);
       
       console.log(`✅ Created demo account: ${account.email} (${account.role})`);
     }
