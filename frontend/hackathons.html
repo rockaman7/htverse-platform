@@ -264,6 +264,22 @@
             (p) => p._id === currentUser.id || p.id === currentUser.id
           );
 
+        // Calculate current status based on dates
+        let currentStatus = hackathon.status || 'upcoming';
+        const now = new Date();
+        const endDate = hackathon.endDate ? new Date(hackathon.endDate) : null;
+        const startDate = hackathon.startDate ? new Date(hackathon.startDate) : null;
+        
+        if (currentStatus !== 'cancelled' && endDate && startDate) {
+          if (endDate < now) {
+            currentStatus = 'completed';
+          } else if (startDate <= now && endDate >= now) {
+            currentStatus = 'ongoing';
+          } else {
+            currentStatus = 'upcoming';
+          }
+        }
+
         const statusColors = {
           upcoming: "#667eea",
           ongoing: "#27ae60",
@@ -313,11 +329,11 @@
                             <div class="meta-item">
                                 <i class="fas fa-tag"></i>
                                 <span style="color: ${
-                                  statusColors[hackathon.status]
+                                  statusColors[currentStatus]
                                 }; font-weight: 600;">
                                     ${
-                                      hackathon.status.charAt(0).toUpperCase() +
-                                      hackathon.status.slice(1)
+                                      currentStatus.charAt(0).toUpperCase() +
+                                      currentStatus.slice(1)
                                     }
                                 </span>
                             </div>
@@ -417,7 +433,24 @@
         filteredHackathons = allHackathons.filter((hackathon) => {
           const categoryMatch =
             !category || hackathon.categories.includes(category);
-          const statusMatch = !status || hackathon.status === status;
+          
+          // Calculate current status based on dates
+          let currentStatus = hackathon.status || 'upcoming';
+          const now = new Date();
+          const endDate = hackathon.endDate ? new Date(hackathon.endDate) : null;
+          const startDate = hackathon.startDate ? new Date(hackathon.startDate) : null;
+          
+          if (currentStatus !== 'cancelled' && endDate && startDate) {
+            if (endDate < now) {
+              currentStatus = 'completed';
+            } else if (startDate <= now && endDate >= now) {
+              currentStatus = 'ongoing';
+            } else {
+              currentStatus = 'upcoming';
+            }
+          }
+          
+          const statusMatch = !status || currentStatus === status;
           return categoryMatch && statusMatch;
         });
 

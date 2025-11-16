@@ -398,7 +398,7 @@
           console.error("Load stats error:", error);
         }
       }
-
+      // Display hackathons in table
       function displayHackathonsTable() {
         const statusFilter = document.getElementById("statusFilter").value;
         let filteredHackathons = hackathons;
@@ -408,7 +408,7 @@
             (h) => h.status === statusFilter
           );
         }
-
+        // Show message if no hackathons
         if (filteredHackathons.length === 0) {
           document.getElementById("hackathonsTable").innerHTML = `
                     <div style="text-align: center; padding: 3rem; color: #666;">
@@ -419,7 +419,7 @@
                 `;
           return;
         }
-
+        // Build table HTML // Refactored for better readability // Added responsive wrapper
         const tableHTML = `
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -444,7 +444,7 @@
 
         document.getElementById("hackathonsTable").innerHTML = tableHTML;
       }
-
+      // Create table row HTML for a hackathon
       function createHackathonRow(hackathon) {
         const statusColors = {
           upcoming: "#667eea",
@@ -452,7 +452,7 @@
           completed: "#95a5a6",
           cancelled: "#e74c3c",
         };
-
+        // Use template literals for better readability
         return `
                 <tr style="border-bottom: 1px solid #e1e5e9;">
                     <td style="padding: 1rem;">
@@ -522,7 +522,7 @@
       }
 
       // Modal functions
-      function showCreateHackathonModal() {
+      function showCreateHackathonModal() { // Reset form for new hackathon
         document.getElementById("modalTitle").textContent =
           "Create New Hackathon";
         document.getElementById("btnText").textContent = "Create Hackathon";

@@ -180,11 +180,18 @@
             "https://htverse-platform.onrender.com/api/hackathons"
           );
           const data = await response.json();
-          if (data.success) {
+          if (data.success && data.total !== undefined) {
             document.getElementById("totalHackathons").textContent = data.total;
+          } else if (Array.isArray(data.data)) {
+            document.getElementById("totalHackathons").textContent = data.data.length;
+          } else if (Array.isArray(data)) {
+            document.getElementById("totalHackathons").textContent = data.length;
           }
         } catch (error) {
           console.error("Error loading stats:", error);
+          // Set default value on error
+          const totalEl = document.getElementById("totalHackathons");
+          if (totalEl) totalEl.textContent = "0";
         }
       });
     </script>
