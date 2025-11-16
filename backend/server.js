@@ -11,18 +11,39 @@ const app = express();
 // Middleware
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-const allowedOrigins = [
-  'https://htverse-platform.vercel.app', // your frontend URL
-  // you can add more allowed origins here
-];
 
-app.use(cors({
-  origin: allowedOrigins,
+// CORS configuration - allow all Vercel deployments and localhost
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all Vercel app domains
+    if (origin.includes('.vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific known origins
+    const allowedOrigins = [
+      'https://htverse-platform.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:5500',
+      'http://127.0.0.1:5500'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 
 // also add this if you expect OPTIONS preflight requests
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 
 // Import routes

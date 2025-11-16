@@ -57,15 +57,34 @@ class APIClient {
 
     try {
       const response = await fetch(`${API_BASE}${endpoint}`, config);
-      const data = await response.json();
+      
+      // Handle network errors or CORS issues
+      if (!response) {
+        throw new Error("Network error: Unable to reach the server. Please check your connection.");
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If response is not JSON, create a meaningful error
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error("Invalid response from server");
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || "Request failed");
+        throw new Error(data.message || `Request failed: ${response.status} ${response.statusText}`);
       }
 
       return data;
     } catch (error) {
       console.error("API Error:", error);
+      // Provide user-friendly error messages
+      if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+        throw new Error("Unable to connect to the server. Please check your internet connection or try again later.");
+      }
       throw error;
     }
   }
