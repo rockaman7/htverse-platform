@@ -525,7 +525,12 @@
         document.getElementById("modalTitle").textContent =
           "Create New Hackathon";
         document.getElementById("btnText").textContent = "Create Hackathon";
-        document.getElementById("hackathonForm").reset();
+        const form = document.getElementById("hackathonForm");
+        form.reset();
+        // Clear any existing hackathonId to ensure it's a create operation
+        delete form.dataset.hackathonId;
+        // Uncheck all category checkboxes
+        document.querySelectorAll('input[name="categories"]').forEach(cb => cb.checked = false);
         document.getElementById("hackathonModal").style.display = "block";
 
         // Set default dates
@@ -547,6 +552,12 @@
       }
 
       function closeHackathonModal() {
+        const form = document.getElementById("hackathonForm");
+        form.reset();
+        // Clear hackathonId when closing
+        delete form.dataset.hackathonId;
+        // Uncheck all category checkboxes
+        document.querySelectorAll('input[name="categories"]').forEach(cb => cb.checked = false);
         document.getElementById("hackathonModal").style.display = "none";
       }
 
@@ -555,7 +566,7 @@
         .getElementById("statusFilter")
         .addEventListener("change", displayHackathonsTable);
 
-      // Handle hackathon form submission
+      // Handle hackathon form submission (handles both create and edit)
       document
         .getElementById("hackathonForm")
         .addEventListener("submit", async (e) => {
@@ -575,6 +586,10 @@
             UIHelpers.showAlert("Please select at least one category", "error");
             return;
           }
+
+          // Check if this is an edit operation
+          const hackathonId = e.target.dataset.hackathonId;
+          const isEdit = !!hackathonId;
 
           const hackathonData = {
             title: formData.get("title").trim(),
@@ -606,21 +621,54 @@
           btnLoader.style.display = "inline";
 
           try {
-            const response = await APIClient.createHackathon(hackathonData);
+            let response;
+            if (isEdit) {
+              // Update existing hackathon
+              response = await fetch(
+                `https://htverse-platform.onrender.com/api/hackathons/${hackathonId}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${TokenManager.getToken()}`,
+                  },
+                  body: JSON.stringify(hackathonData),
+                }
+              );
+              response = await response.json();
+            } else {
+              // Create new hackathon
+              response = await APIClient.createHackathon(hackathonData);
+            }
+
             if (response.success) {
-              UIHelpers.showAlert("Hackathon created successfully!", "success");
+              UIHelpers.showAlert(
+                `Hackathon ${isEdit ? "updated" : "created"} successfully!`,
+                "success"
+              );
               closeHackathonModal();
               loadDashboardData();
+            } else {
+              UIHelpers.showAlert(
+                response.message ||
+                  `Failed to ${isEdit ? "update" : "create"} hackathon`,
+                "error"
+              );
             }
           } catch (error) {
             UIHelpers.showAlert(
-              error.message || "Failed to create hackathon",
+              error.message ||
+                `Failed to ${isEdit ? "update" : "create"} hackathon`,
               "error"
             );
           } finally {
+            // Reset form state
             submitBtn.disabled = false;
             btnText.style.display = "inline";
             btnLoader.style.display = "none";
+            if (isEdit) {
+              delete e.target.dataset.hackathonId;
+            }
           }
         });
 
@@ -716,63 +764,6 @@
           UIHelpers.showAlert("Failed to load hackathon details", "error");
         }
       }
-
-      // Update the form submission handler to handle both create and edit
-      document
-        .getElementById("hackathonForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-
-          const submitBtn = document.getElementById("submitBtn");
-          const btnText = document.getElementById("btnText");
-          const btnLoader = document.getElementById("btnLoader");
-
-          const hackathonId = e.target.dataset.hackathonId;
-          const isEdit = !!hackathonId;
-
-          // ... rest of the form handling code stays the same ...
-
-          try {
-            let response;
-            if (isEdit) {
-              // Update existing hackathon
-              response = await fetch(
-                `https://htverse-platform.onrender.com/api/hackathons/${hackathonId}`,
-                {
-                  method: "PUT",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${TokenManager.getToken()}`,
-                  },
-                  body: JSON.stringify(hackathonData),
-                }
-              );
-              response = await response.json();
-            } else {
-              // Create new hackathon
-              response = await APIClient.createHackathon(hackathonData);
-            }
-
-            if (response.success) {
-              UIHelpers.showAlert(
-                `Hackathon ${isEdit ? "updated" : "created"} successfully!`,
-                "success"
-              );
-              closeHackathonModal();
-              loadDashboardData();
-            }
-          } catch (error) {
-            UIHelpers.showAlert(
-              error.message ||
-                `Failed to ${isEdit ? "update" : "create"} hackathon`,
-              "error"
-            );
-          } finally {
-            // Reset form state
-            delete e.target.dataset.hackathonId;
-            // ... rest of cleanup code ...
-          }
-        });
 
       // Close modal when clicking outside
       window.onclick = function (event) {
